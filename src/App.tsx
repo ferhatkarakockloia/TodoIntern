@@ -1,4 +1,4 @@
-import './App.css'
+import './index.css'
 import TodoProvider from './app/context/todo-provider'
 import Routers from './app/routes'
 
