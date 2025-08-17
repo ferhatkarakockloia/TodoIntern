@@ -1,16 +1,15 @@
-import './index.css'
-import TodoProvider from './app/context/todo-provider'
-import Routers from './app/routes'
+import "./index.css";
+import Routers from "./app/routes";
+import AuthProvider from "./app/context/auth/auth-provider";
 
 function App() {
-
   return (
     <div>
-      <TodoProvider>
+      <AuthProvider>
         <Routers />
-      </TodoProvider>
+      </AuthProvider>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
