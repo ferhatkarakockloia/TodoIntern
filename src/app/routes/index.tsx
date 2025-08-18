@@ -9,6 +9,7 @@ import Calendar from "../pages/calendar";
 import Upcoming from "../pages/upcoming";
 import Completed from "../pages/completed";
 import Setting from "../pages/settings";
+import HomeDashboard from "../pages/home/HomeDashboard";
 
 const Routers = () => {
   return (
@@ -17,6 +18,7 @@ const Routers = () => {
       <Route path="/signin" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/home" element={<Home />}>
+        <Route index element={<HomeDashboard />} />
         <Route path="add-task" element={<AddTask />} />
         <Route path="today" element={<Today />} />
         <Route path="calendar" element={<Calendar />} />
