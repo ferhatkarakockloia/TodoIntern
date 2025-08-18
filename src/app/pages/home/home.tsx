@@ -5,12 +5,13 @@ import UserMenu from "../../components/usermenu/usermenu.tsx";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { auth } from "../..//config/firebase";
 import { signOut } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Outlet, useLocation } from "react-router-dom";
 
 const Home = () => {
   const { user } = useAuthContext();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const togglePanel = () => {
     setIsPanelOpen(!isPanelOpen);
@@ -44,9 +45,13 @@ const Home = () => {
           <UserMenu displayName={user?.displayName || "Kullanıcı"} onLogout={handleLogout} />
         </div>
 
-        <h1 className="text-3xl font-bold mb-6 mt-12">
-          Hoş geldin {user?.displayName}
-        </h1>
+        {location.pathname === "/home" && (
+          <h1 className="text-3xl font-bold mb-6 mt-12">
+            Hoş geldin {user?.displayName}
+          </h1>
+        )}
+
+        <Outlet />
       </main>
     </div>
   );
