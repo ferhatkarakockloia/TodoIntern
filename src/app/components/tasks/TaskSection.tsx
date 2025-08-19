@@ -1,12 +1,12 @@
 import TaskCard from "./TaskCard";
-import type { Task } from "../../context/todocontext/types";
+import type { Task, TaskUpdate } from "../../context/todocontext/types";
 
 type Props = {
   title: string;
   tasks: Task[];
   updatingIds: Record<string, boolean>;
   onToggle: (taskId: string, value: boolean) => Promise<void>;
-  onUpdate?: (taskId: string, data: Partial<Task>) => Promise<void>;
+  onUpdate?: (taskId: string, data: Partial<TaskUpdate>) => Promise<void>;
   onDelete?: (taskId: string) => Promise<void>;
   emptyText?: string;
   className?: string;

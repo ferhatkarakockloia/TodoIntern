@@ -87,9 +87,13 @@ const AddTask = () => {
       setDueAt(nowLocalInputValue(60));
       setPriority("medium");
       setOk("Görev eklendi!");
-    } catch (e: any) {
-      console.error(e);
-      setErr(e?.message || "Görev eklenemedi.");
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        console.error(e);
+        setErr(e.message || "Görev eklenemedi.");
+      } else {
+        setErr("Görev eklenemedi.");
+      }
     } finally {
       setLoading(false);
     }

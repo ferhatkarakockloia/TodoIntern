@@ -20,8 +20,12 @@ const SignIn = () => {
     try {
       await signIn(email, password);
       nav("/home");
-    } catch (e: any) {
-      setErr(e?.message || "Giriş başarısız.");
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        setErr(e.message);
+      } else {
+        setErr("Giriş başarısız.");
+      }
     } finally {
       setLoading(false);
     }

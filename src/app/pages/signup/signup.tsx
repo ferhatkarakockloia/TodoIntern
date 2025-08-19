@@ -38,8 +38,12 @@ const SignUp = () => {
     try {
       await signUp({ firstName, lastName, email, password });
       nav("/signin");
-    } catch (e: any) {
-      setErr(e?.message || "Sign up failed.");
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        setErr(e.message);
+      } else {
+        setErr("Sign up failed.");
+      }
     } finally {
       setLoading(false);
     }
@@ -171,4 +175,5 @@ const SignUp = () => {
     </main>
   );
 };
+
 export default SignUp;

@@ -8,6 +8,7 @@ import {
   doc,
   addDoc,
   deleteDoc,
+  type DocumentData, // DocumentData'yı import edin
 } from "firebase/firestore";
 import {
   useCallback,
@@ -24,7 +25,7 @@ import type { Task, TodoContextType } from "./types";
 
 function toDateMaybe(t?: Timestamp | Date | null): Date | null {
   if (!t) return null;
-  // @ts-ignore
+  // @ts-expect-error Firebase Timestamp type is not assignable to Date type.
   return typeof t.toDate === "function"
     ? (t as Timestamp).toDate()
     : (t as Date);
@@ -39,12 +40,12 @@ function isSameDay(a?: Date | null, b?: Date | null) {
 }
 function isWithinThisWeek(d?: Date | null) {
   if (!d) return false;
-  const now = new Date();
-  const day = now.getDay();
+  const today = new Date();
+  const day = today.getDay();
   const diffToMonday = (day + 6) % 7;
-  const monday = new Date(now);
+  const monday = new Date(today);
   monday.setHours(0, 0, 0, 0);
-  monday.setDate(now.getDate() - diffToMonday);
+  monday.setDate(today.getDate() - diffToMonday);
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
   sunday.setHours(23, 59, 59, 999);
@@ -75,7 +76,7 @@ const TodoProvider = ({ children }: Props) => {
       q,
       (snap) => {
         const data: Task[] = snap.docs.map((d) => {
-          const raw = d.data() as any;
+          const raw = d.data() as DocumentData;
           return {
             id: d.id,
             title: raw.title ?? "(Başlıksız)",
@@ -89,7 +90,7 @@ const TodoProvider = ({ children }: Props) => {
         setAllTasks(data);
         setLoading(false);
       },
-      (err) => {
+      (err: unknown) => {
         console.error("tasks snapshot error:", err);
         setLoading(false);
       }
@@ -116,6 +117,7 @@ const TodoProvider = ({ children }: Props) => {
         alert("Görev güncellenemedi. Lütfen tekrar deneyin.");
       } finally {
         setUpdatingIds((m) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { [taskId]: _, ...rest } = m;
           return rest;
         });
@@ -179,17 +181,16 @@ const TodoProvider = ({ children }: Props) => {
     [user?.uid]
   );
 
-  const today = new Date();
   const todayTasks = useMemo(
-    () =>
-      allTasks.filter(
-        (t) => isSameDay(t.dueAt, today)
-      ),
+    () => {
+      const today = new Date();
+      return allTasks.filter((t) => isSameDay(t.dueAt, today));
+    },
     [allTasks]
   );
+  
   const weekTasks = useMemo(
-    () =>
-      allTasks.filter((t) => isWithinThisWeek(t.startAt ?? t.dueAt ?? null)),
+    () => allTasks.filter((t) => isWithinThisWeek(t.startAt ?? t.dueAt ?? null)),
     [allTasks]
   );
 
