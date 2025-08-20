@@ -17,7 +17,13 @@ type TaskCardProps = {
   busy?: boolean;
 };
 
-export default function TaskCard({ task, onToggle, onUpdate, onDelete, busy }: TaskCardProps) {
+export default function TaskCard({
+  task,
+  onToggle,
+  onUpdate,
+  onDelete,
+  busy,
+}: TaskCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
   const [editedDueTime, setEditedDueTime] = useState("");
@@ -29,8 +35,8 @@ export default function TaskCard({ task, onToggle, onUpdate, onDelete, busy }: T
     setIsEditing(true);
     setEditedTitle(task.title);
     if (task.dueAt) {
-      const hours = String(task.dueAt.getHours()).padStart(2, '0');
-      const minutes = String(task.dueAt.getMinutes()).padStart(2, '0');
+      const hours = String(task.dueAt.getHours()).padStart(2, "0");
+      const minutes = String(task.dueAt.getMinutes()).padStart(2, "0");
       setEditedDueTime(`${hours}:${minutes}`);
     } else {
       setEditedDueTime("");
@@ -39,24 +45,29 @@ export default function TaskCard({ task, onToggle, onUpdate, onDelete, busy }: T
 
   const handleSaveEdit = async () => {
     if (!onUpdate) return;
-    
+
     const updates: Partial<TaskUpdate> = {};
-    
-    const isTitleChanged = editedTitle.trim() !== "" && editedTitle !== task.title;
-    const currentDueAtTimeStr = task.dueAt ? `${String(task.dueAt.getHours()).padStart(2, '0')}:${String(task.dueAt.getMinutes()).padStart(2, '0')}` : "";
+
+    const isTitleChanged =
+      editedTitle.trim() !== "" && editedTitle !== task.title;
+    const currentDueAtTimeStr = task.dueAt
+      ? `${String(task.dueAt.getHours()).padStart(2, "0")}:${String(
+          task.dueAt.getMinutes()
+        ).padStart(2, "0")}`
+      : "";
     const isDueTimeChanged = editedDueTime !== currentDueAtTimeStr;
-    
+
     if (isTitleChanged || isDueTimeChanged) {
       updates.startAt = Timestamp.fromDate(new Date());
     }
-    
+
     if (isTitleChanged) {
       updates.title = editedTitle.trim();
     }
-    
+
     if (isDueTimeChanged) {
       if (editedDueTime) {
-        const [hours, minutes] = editedDueTime.split(':').map(Number);
+        const [hours, minutes] = editedDueTime.split(":").map(Number);
         const newDueAt = task.dueAt ? new Date(task.dueAt) : new Date();
         newDueAt.setHours(hours, minutes, 0, 0);
         updates.dueAt = Timestamp.fromDate(newDueAt);
@@ -72,7 +83,7 @@ export default function TaskCard({ task, onToggle, onUpdate, onDelete, busy }: T
         console.error("Failed to update task:", error);
       }
     }
-    
+
     setIsEditing(false);
   };
 
@@ -136,7 +147,7 @@ export default function TaskCard({ task, onToggle, onUpdate, onDelete, busy }: T
               {task.title}
             </h4>
           )}
-          
+
           <div className="mt-3 flex flex-wrap gap-2">
             {task.chips?.map((c, i) => (
               <Chip key={i} label={c} />
@@ -149,35 +160,49 @@ export default function TaskCard({ task, onToggle, onUpdate, onDelete, busy }: T
         </div>
 
         <div className="flex gap-1">
-            {onUpdate && (
-                <button
-                    onClick={handleEditClick}
-                    disabled={busy}
-                    className="p-2 text-slate-400 hover:text-[#E9DFB3] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    aria-label="Görevi düzenle"
-                    title="Görevi düzenle"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-edit"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                </button>
-            )}
-            {onDelete && (
-                <button
-                    onClick={() => onDelete(task.id)}
-                    disabled={busy}
-                    className="p-2 text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    aria-label="Görevi sil"
-                    title="Görevi sil"
-                >
-                    <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    >
-                    <path d="M18.3 5.71a.996.996 0 0 0-1.41 0L12 10.59 7.11 5.7A.996.996 0 1 0 5.7 7.11L10.59 12 5.7 16.89a.996.996 0 1 0 1.41 1.41L12 13.41l4.89 4.89a.996.996 0 1 0 1.41-1.41L13.41 12l4.89-4.89a.996.996 0 0 0 0-1.4z" />
-                    </svg>
-                </button>
-            )}
+          {onUpdate && (
+            <button
+              onClick={handleEditClick}
+              disabled={busy}
+              className="p-2 text-slate-400 hover:text-[#E9DFB3] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Görevi düzenle"
+              title="Görevi düzenle"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="lucide lucide-edit"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={() => onDelete(task.id)}
+              disabled={busy}
+              className="p-2 text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Görevi sil"
+              title="Görevi sil"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M18.3 5.71a.996.996 0 0 0-1.41 0L12 10.59 7.11 5.7A.996.996 0 1 0 5.7 7.11L10.59 12 5.7 16.89a.996.996 0 1 0 1.41 1.41L12 13.41l4.89 4.89a.996.996 0 1 0 1.41-1.41L13.41 12l4.89-4.89a.996.996 0 0 0 0-1.4z" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { Timestamp } from "firebase/firestore";
 export type Task = {
   id: string;
   title: string;
+  description?: string;            
   chips: string[];
   priority?: "low" | "medium" | "high";
   completed: boolean;
@@ -12,11 +13,21 @@ export type Task = {
 
 export type TaskUpdate = {
   title?: string;
+  description?: string;            
   chips?: string[];
   priority?: "low" | "medium" | "high";
   completed?: boolean;
   startAt?: Timestamp | null;
   dueAt?: Timestamp | null;
+};
+
+export type AddTodoInput = {
+  title: string;
+  description?: string;
+  startAt?: Timestamp | null;      
+  dueAt: Timestamp;               
+  priority?: "low" | "medium" | "high";
+  chips?: string[];                
 };
 
 export type TodoContextType = {
@@ -26,7 +37,7 @@ export type TodoContextType = {
   loading: boolean;
   updatingIds: Record<string, boolean>;
   toggleCompleted: (taskId: string, value: boolean) => Promise<void>;
-  addTodo: (title: string, dueAtTime?: string) => Promise<void>;
+  addTodo: (input: AddTodoInput) => Promise<void>;          
   deleteTodo: (taskId: string) => Promise<void>;
   updateTodo: (taskId: string, data: Partial<TaskUpdate>) => Promise<void>;
 };

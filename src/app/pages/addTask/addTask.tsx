@@ -1,14 +1,7 @@
 import { useMemo, useState } from "react";
 import { useAuthContext } from "../../context/auth/auth-context";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  Timestamp,
-} from "firebase/firestore";
-import { app } from "../../config/firebase";
-
-const db = getFirestore(app);
+import { Timestamp } from "firebase/firestore";
+import { useTodoContext } from "../../context/todocontext/todo-context";
 
 function nowLocalInputValue(offsetMinutes = 0) {
   const d = new Date(Date.now() + offsetMinutes * 60_000);
@@ -28,6 +21,7 @@ function toTimestampOrNull(v: string) {
 
 const AddTask = () => {
   const { user } = useAuthContext();
+  const { addTodo } = useTodoContext();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
@@ -45,15 +39,16 @@ const AddTask = () => {
     e.preventDefault();
     setErr(null);
     setOk(null);
+
     if (!user) {
       setErr("Oturum bulunamadı. Lütfen giriş yapın.");
       return;
     }
-
     if (!title.trim()) {
       setErr("Başlık zorunludur.");
       return;
     }
+
     const tsStart = toTimestampOrNull(startAt);
     const tsDue = toTimestampOrNull(dueAt);
 
@@ -68,19 +63,15 @@ const AddTask = () => {
 
     try {
       setLoading(true);
-      await addDoc(collection(db, "users", user.uid, "tasks"), {
+
+      await addTodo({
         title: title.trim(),
         description: description.trim() || "",
-        startAt: tsStart,
+        startAt: tsStart ?? null,
         dueAt: tsDue,
         priority,
-        completed: false,
-        createdBy: user.uid,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
       });
 
-      // reset
       setTitle("");
       setDescription("");
       setStartAt(nowLocalInputValue());

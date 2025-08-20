@@ -8,7 +8,7 @@ import {
   doc,
   addDoc,
   deleteDoc,
-  type DocumentData, // DocumentData'yı import edin
+  type DocumentData,
 } from "firebase/firestore";
 import {
   useCallback,
@@ -80,6 +80,8 @@ const TodoProvider = ({ children }: Props) => {
           return {
             id: d.id,
             title: raw.title ?? "(Başlıksız)",
+            description:
+              typeof raw.description === "string" ? raw.description : "",
             chips: Array.isArray(raw.chips) ? raw.chips : [],
             priority: raw.priority ?? undefined,
             completed: !!raw.completed,
@@ -99,7 +101,7 @@ const TodoProvider = ({ children }: Props) => {
     return () => unsub();
   }, [user?.uid]);
 
-  const toggleCompleted = useCallback<TodoContextType['toggleCompleted']>(
+  const toggleCompleted = useCallback<TodoContextType["toggleCompleted"]>(
     async (taskId, value) => {
       if (!user?.uid) return;
       try {
@@ -108,7 +110,7 @@ const TodoProvider = ({ children }: Props) => {
           prev.map((t) => (t.id === taskId ? { ...t, completed: value } : t))
         );
         const ref = doc(db, "users", user.uid, "tasks", taskId);
-        await updateDoc(ref, { completed: value });
+        await updateDoc(ref, { completed: value, updatedAt: Timestamp.now() });
       } catch (e) {
         console.error("toggleCompleted error:", e);
         setAllTasks((prev) =>
@@ -117,7 +119,6 @@ const TodoProvider = ({ children }: Props) => {
         alert("Görev güncellenemedi. Lütfen tekrar deneyin.");
       } finally {
         setUpdatingIds((m) => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { [taskId]: _, ...rest } = m;
           return rest;
         });
@@ -126,40 +127,40 @@ const TodoProvider = ({ children }: Props) => {
     [user?.uid]
   );
 
-  const addTodo = useCallback<TodoContextType['addTodo']>(
-    async (title, dueAtTime) => {
+  const addTodo = useCallback<TodoContextType["addTodo"]>(
+    async (input) => {
       if (!user?.uid) return;
-      const now = new Date();
-      
-      const dueAtDate = new Date();
-      if (dueAtTime) {
-        const [hours, minutes] = dueAtTime.split(':').map(Number);
-        dueAtDate.setHours(hours, minutes, 0, 0);
-      } else {
-        dueAtDate.setHours(23, 59, 59, 999);
-      }
+
+      const payload = {
+        title: input.title.trim(),
+        description: input.description?.trim() || "",
+        startAt: input.startAt ?? null,
+        dueAt: input.dueAt,
+        priority: input.priority ?? "medium",
+        chips: Array.isArray(input.chips) ? input.chips : [],
+        completed: false,
+        createdBy: user.uid,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      };
 
       try {
-        await addDoc(collection(db, "users", user.uid, "tasks"), {
-          title,
-          completed: false,
-          startAt: Timestamp.fromDate(now),
-          dueAt: Timestamp.fromDate(dueAtDate),
-        });
+        await addDoc(collection(db, "users", user.uid, "tasks"), payload);
       } catch (e) {
         console.error("addTodo error:", e);
+
         alert("Görev eklenemedi. Lütfen tekrar deneyin.");
       }
     },
     [user?.uid]
   );
 
-  const updateTodo = useCallback<TodoContextType['updateTodo']>(
+  const updateTodo = useCallback<TodoContextType["updateTodo"]>(
     async (taskId, data) => {
       if (!user?.uid) return;
       const docRef = doc(db, "users", user.uid, "tasks", taskId);
       try {
-        await updateDoc(docRef, data);
+        await updateDoc(docRef, { ...data, updatedAt: Timestamp.now() });
       } catch (e) {
         console.error("updateTodo error:", e);
         alert("Görev güncellenemedi. Lütfen tekrar deneyin.");
@@ -168,8 +169,8 @@ const TodoProvider = ({ children }: Props) => {
     [user?.uid]
   );
 
-  const deleteTodo = useCallback<TodoContextType['deleteTodo']>(
-    async (taskId) => {
+  const deleteTodo = useCallback<TodoContextType["deleteTodo"]>(
+    /* aynı */ async (taskId) => {
       if (!user?.uid) return;
       try {
         await deleteDoc(doc(db, "users", user.uid, "tasks", taskId));
@@ -181,16 +182,14 @@ const TodoProvider = ({ children }: Props) => {
     [user?.uid]
   );
 
-  const todayTasks = useMemo(
-    () => {
-      const today = new Date();
-      return allTasks.filter((t) => isSameDay(t.dueAt, today));
-    },
-    [allTasks]
-  );
-  
+  const todayTasks = useMemo(() => {
+    const today = new Date();
+    return allTasks.filter((t) => isSameDay(t.dueAt, today));
+  }, [allTasks]);
+
   const weekTasks = useMemo(
-    () => allTasks.filter((t) => isWithinThisWeek(t.startAt ?? t.dueAt ?? null)),
+    () =>
+      allTasks.filter((t) => isWithinThisWeek(t.startAt ?? t.dueAt ?? null)),
     [allTasks]
   );
 
@@ -201,7 +200,7 @@ const TodoProvider = ({ children }: Props) => {
     loading,
     updatingIds,
     toggleCompleted,
-    addTodo,
+    addTodo, //
     updateTodo,
     deleteTodo,
   };
