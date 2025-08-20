@@ -4,7 +4,7 @@ import {
   dateFnsLocalizer,
   type SlotInfo,
   type View,
-  type ToolbarProps as RBToolbarProps, // ✅ DOĞRU TİP
+  type ToolbarProps as RBToolbarProps,
 } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { tr } from "date-fns/locale";

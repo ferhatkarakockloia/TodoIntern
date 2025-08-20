@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { useAuthContext } from "../../context/auth/auth-context";
 import { Timestamp } from "firebase/firestore";
 import { useTodoContext } from "../../context/todocontext/todo-context";
-
 function nowLocalInputValue(offsetMinutes = 0) {
   const d = new Date(Date.now() + offsetMinutes * 60_000);
   const yyyy = d.getFullYear();
@@ -12,34 +11,31 @@ function nowLocalInputValue(offsetMinutes = 0) {
   const mi = String(d.getMinutes()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
 }
-
 function toTimestampOrNull(v: string) {
   if (!v) return null;
   const date = new Date(v);
   return isNaN(date.getTime()) ? null : Timestamp.fromDate(date);
 }
-
-const AddTask = () => {
+interface AddTaskProps {
+  isTodayPage?: boolean;
+}
+const AddTask = ({ isTodayPage = false }: AddTaskProps) => {
   const { user } = useAuthContext();
   const { addTodo } = useTodoContext();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-
   const defaultStart = useMemo(() => nowLocalInputValue(), []);
   const defaultDue = useMemo(() => nowLocalInputValue(60), []);
   const [startAt, setStartAt] = useState(defaultStart);
   const [dueAt, setDueAt] = useState(defaultDue);
-
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
-
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr(null);
     setOk(null);
-
     if (!user) {
       setErr("Oturum bulunamadı. Lütfen giriş yapın.");
       return;
@@ -48,22 +44,33 @@ const AddTask = () => {
       setErr("Başlık zorunludur.");
       return;
     }
-
     const tsStart = toTimestampOrNull(startAt);
     const tsDue = toTimestampOrNull(dueAt);
-
     if (!tsDue) {
       setErr("Bitiş tarihi ve saati (Due) geçerli olmalıdır.");
       return;
+    }
+    // Today Control
+    if (isTodayPage) {
+      const today = new Date();
+      const dueDate = tsDue.toDate();
+      if (
+        dueDate.getFullYear() !== today.getFullYear() ||
+        dueDate.getMonth() !== today.getMonth() ||
+        dueDate.getDate() !== today.getDate()
+      ) {
+        setErr(
+          "Bugün sayfasına sadece bugüne ait görevler eklenebilir. Lütfen bitiş tarihini bugüne ayarlayın."
+        );
+        return;
+      }
     }
     if (tsStart && tsDue && tsStart.toMillis() > tsDue.toMillis()) {
       setErr("Bitiş tarihi başlangıçtan sonra olmalıdır.");
       return;
     }
-
     try {
       setLoading(true);
-
       await addTodo({
         title: title.trim(),
         description: description.trim() || "",
@@ -71,7 +78,6 @@ const AddTask = () => {
         dueAt: tsDue,
         priority,
       });
-
       setTitle("");
       setDescription("");
       setStartAt(nowLocalInputValue());
@@ -89,7 +95,6 @@ const AddTask = () => {
       setLoading(false);
     }
   };
-
   return (
     <div className="flex flex-col items-center justify-center p-8">
       <h2 className="text-2xl font-bold mb-2 text-[#E9DFB3]">
@@ -98,7 +103,6 @@ const AddTask = () => {
       <p className="text-sm text-[#C8B88A] mb-6">
         Başlık, tarih-saat ve öncelik seçip kaydedin.
       </p>
-
       {err && (
         <div className="mb-4 w-full max-w-md rounded-lg border border-red-400 bg-red-500/10 px-4 py-2 text-red-200">
           {err}
@@ -109,25 +113,22 @@ const AddTask = () => {
           {ok}
         </div>
       )}
-
       <form onSubmit={handleAddTask} className="w-full max-w-md space-y-4">
         <input
           type="text"
           placeholder="Görev Başlığı *"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full border border-white/10 bg-white/5 text-[#F6F0D6] placeholder:text-[#b7ab82] p-2 rounded"
+          className="w-full border border-white/10 bg-white/5 text-[#F6F0D6] placeholder:text-[#B7AB82] p-2 rounded"
           required
         />
-
         <textarea
           placeholder="Açıklama (opsiyonel)"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full border border-white/10 bg-white/5 text-[#F6F0D6] placeholder:text-[#b7ab82] p-2 rounded"
+          className="w-full border border-white/10 bg-white/5 text-[#F6F0D6] placeholder:text-[#B7AB82] p-2 rounded"
           rows={4}
         />
-
         <label className="block text-sm text-[#E9DFB3]">
           Başlangıç Tarihi ve Saati (opsiyonel)
           <input
@@ -137,7 +138,6 @@ const AddTask = () => {
             className="mt-1 w-full border border-white/10 bg-white/5 text-[#F6F0D6] p-2 rounded"
           />
         </label>
-
         <label className="block text-sm text-[#E9DFB3]">
           Bitiş Tarihi ve Saati (Due) *
           <input
@@ -148,7 +148,6 @@ const AddTask = () => {
             required
           />
         </label>
-
         <label className="block text-sm text-[#E9DFB3]">
           Öncelik
           <select
@@ -163,7 +162,6 @@ const AddTask = () => {
             <option value="high">Yüksek</option>
           </select>
         </label>
-
         <button
           type="submit"
           disabled={loading}
@@ -175,5 +173,4 @@ const AddTask = () => {
     </div>
   );
 };
-
 export default AddTask;
