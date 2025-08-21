@@ -100,6 +100,30 @@ const TodoProvider = ({ children }: Props) => {
 
     return () => unsub();
   }, [user?.uid]);
+  
+  // YENİ EKLENEN KOD: Tamamlanmamış görevleri kontrol etme
+  useEffect(() => {
+    const checkInterval = setInterval(() => {
+      // Sadece kullanıcı giriş yapmışsa kontrol et
+      if (user?.uid) {
+        const now = new Date();
+        
+        // Süresi geçmiş ve tamamlanmamış görevleri bul
+        allTasks.forEach(task => {
+          const dueDate = toDateMaybe(task.dueAt);
+          
+          if (dueDate && dueDate < now && !task.completed) {
+            console.log(`Görev süresi doldu ve tamamlanmadı: ${task.title}`);
+            // İstersen burada bir güncelleme fonksiyonu çağırabilirsin.
+            // Örneğin: updateTodo(task.id, { completed: false });
+          }
+        });
+      }
+    }, 300000); // 300000ms = 5 dakika
+
+    return () => clearInterval(checkInterval);
+  }, [user?.uid, allTasks]);
+
 
   const toggleCompleted = useCallback<TodoContextType["toggleCompleted"]>(
     async (taskId, value) => {
@@ -193,7 +217,6 @@ const TodoProvider = ({ children }: Props) => {
     [allTasks]
   );
 
-  // Bu kısım eklendi
   const pastTasks = useMemo(() => {
     const now = new Date();
     return allTasks.filter(task => {
@@ -202,7 +225,6 @@ const TodoProvider = ({ children }: Props) => {
     });
   }, [allTasks]);
 
-  // Bu kısım güncellendi
   const value: TodoContextType = {
     allTasks,
     todayTasks,
