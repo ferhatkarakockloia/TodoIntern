@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTodoContext } from "../../context/todocontext/todo-context";
 import TaskSection from "../../components/tasks/TaskSection";
-import CalendarPanel from "../../components/calendar/CalendarPanel";
+import CalendarPanel from "../../components/calendar/calendarPanel";
 
 export default function HomeDashboard() {
   const {
